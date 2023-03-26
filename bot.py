@@ -4,8 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from bakai import BakaiRatesProvider
-
-from PIL import Image, ImageDraw, ImageFont
+from response_image_builder import ResponseImageBuilder
 
 load_dotenv()  # Take environment variables from .env.
 
@@ -27,7 +26,10 @@ def send_message(message):
         bank = "Бакай"
         text = build_response_text(bakai_rub_rate, bank)
         
-        bot.send_photo(chat_id=chat_id, photo=build_response_image(text))
+        response_image_builder = ResponseImageBuilder()
+        response_image = response_image_builder.build_image(text)
+
+        bot.send_photo(chat_id=chat_id, photo=response_image)
     except Exception as ex:
         # Send an error message
         print(ex)
@@ -43,13 +45,6 @@ def build_response_text(rate, bank):
         f"    Покупка: {rate.non_cash_buy}\n"
         f"    Продажа: {rate.non_cash_sell}"
     )
-        
-def build_response_image(text):
-    photo = Image.new("I", (600, 670), "white")
-    font = ImageFont.truetype("arial.ttf", 25)
-    drawer = ImageDraw.Draw(photo)
-    drawer.text((10, 10), text, font=font, fill='black')
-    return photo 
 
 # Start the bot
 bot.polling(none_stop=True)
