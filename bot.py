@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from bakai import BakaiRatesProvider
+from finca import FincaRatesProvider
 from response_image_builder import ResponseImageBuilder
 
 load_dotenv()  # Take environment variables from .env.
@@ -23,9 +24,12 @@ def send_message(message):
         # Get the ruble exchange rate from Bakai bank API
         bakai_rub_rate = BakaiRatesProvider.get_rates("RUB")[0]
 
-        bank = "Бакай"
-        text = build_response_text(bakai_rub_rate, bank)
+        text = build_response_text(bakai_rub_rate, BakaiRatesProvider.NAME)
         
+        finca_rub_rate = FincaRatesProvider.get_rates("RUB")[0]
+
+        text += "\n" + build_response_text(finca_rub_rate, FincaRatesProvider.NAME)
+
         response_image_builder = ResponseImageBuilder()
         response_image = response_image_builder.build_image(text)
 
@@ -43,7 +47,7 @@ def build_response_text(rate, bank):
         f"    Продажа: {rate.cash_sell}\n \n"
         f"Безналичными:\n"
         f"    Покупка: {rate.non_cash_buy}\n"
-        f"    Продажа: {rate.non_cash_sell}"
+        f"    Продажа: {rate.non_cash_sell}\n"
     )
 
 # Start the bot

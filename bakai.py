@@ -7,11 +7,12 @@ from interfaces.currency_rates_provider import CurrencyRatesProvider
 
 
 class BakaiRatesProvider(CurrencyRatesProvider):
+    NAME = "Бакай"
     _bakai_currency_rates_url = "https://bakai24.bakai.kg/v1/currency_rates"
     _currencies_field = "currencies"
 
     @staticmethod
-    def _get_currency_rates() -> dict:
+    def _get_currency_rates() -> list:
         bakai_response = requests.get(BakaiRatesProvider._bakai_currency_rates_url)
         bakai_data = bakai_response.json()
 
@@ -35,7 +36,7 @@ class BakaiRatesProvider(CurrencyRatesProvider):
 
     @staticmethod
     def _get_actual_rates(rates: dict) -> CurrencyRate:
-        rate = CurrencyRate(code = rates["code"])
+        rate = CurrencyRate(code=rates["code"])
 
         cash_sell_key = "cash_sell"
         if cash_sell_key in rates:
