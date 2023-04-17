@@ -4,8 +4,10 @@ from typing import Union, Self, Iterable
 
 from models.currency_rate import CurrencyRate
 from interfaces.currency_rates_provider import CurrencyRatesProvider
+from providers.provider_container import ProviderContainer
 
 
+@ProviderContainer.register
 class BakaiRatesProvider(CurrencyRatesProvider):
     NAME = "Бакай"
     _bakai_currency_rates_url = "https://bakai24.bakai.kg/v1/currency_rates"
