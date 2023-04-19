@@ -5,8 +5,10 @@ from lxml import etree
 
 from models.currency_rate import CurrencyRate
 from interfaces.currency_rates_provider import CurrencyRatesProvider
+from providers.provider_container import ProviderContainer
 
 
+@ProviderContainer.register
 class FincaRatesProvider(CurrencyRatesProvider):
     NAME = "ФИНКА"
     _finca_main_page_url = "https://fincabank.kg/"
