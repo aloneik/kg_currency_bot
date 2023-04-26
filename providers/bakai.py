@@ -1,4 +1,5 @@
 import requests
+import logging
 
 from typing import Union, Self, Iterable
 
@@ -13,31 +14,35 @@ class BakaiRatesProvider(CurrencyRatesProvider):
     _bakai_currency_rates_url = "https://bakai24.bakai.kg/v1/currency_rates"
     _currencies_field = "currencies"
 
-    @staticmethod
-    def _get_currency_rates() -> list:
+    def __init__(self) -> None:
+        super().__init__()
+        self._logger = logging.getLogger()
+
+    def _get_currency_rates(self) -> list:
         bakai_response = requests.get(BakaiRatesProvider._bakai_currency_rates_url)
         bakai_data = bakai_response.json()
+        self._logger.info(f"Recieved data from Bakai API: {bakai_data}")
 
         currencies_field = BakaiRatesProvider._currencies_field
         if currencies_field not in bakai_data:
+            self._logger.info("Recieved data is incorrect")
             raise ValueError(f"Response from Bakai's currency API is incorrect")
 
         return bakai_data[currencies_field]
 
-    @staticmethod
-    def _get_curr_codes(rates_data: dict) -> Iterable[str]:
+    def _get_curr_codes(self, rates_data: dict) -> Iterable[str]:
         return (cr["code"] for cr in rates_data)
 
-    @staticmethod
-    def _get_rates(rates_data: list, alphabetic_code: str) -> dict:
+    def _get_rates(self, rates_data: list, alphabetic_code: str) -> dict:
         desired_rates = next(cr for cr in rates_data if cr["code"] == alphabetic_code)
         if desired_rates is None:
+            self._logger.info(f"Currency code '{alphabetic_code}' not found")
             raise ValueError(f"There is no currency `{alphabetic_code}` in the given currency rates")
-
+        
+        self._logger.info(f"Found rates for '{alphabetic_code}': {desired_rates}")
         return desired_rates
 
-    @staticmethod
-    def _get_actual_rates(rates: dict) -> CurrencyRate:
+    def _get_actual_rates(self, rates: dict) -> CurrencyRate:
         rate = CurrencyRate(code=rates["code"])
 
         cash_sell_key = "cash_sell"
@@ -64,13 +69,13 @@ class BakaiRatesProvider(CurrencyRatesProvider):
         if transfer_buy_key in rates:
             rate.transfer_buy = rates[transfer_buy_key]
 
+        self._logger.info(f"Conversion to CurrencyRate: {rate}")
         return rate
 
-    @classmethod
-    def get_rates(cls: Self, currency_code: Union[str, None] = None) -> tuple:
-        rates_data = cls._get_currency_rates()
-        codes = cls._get_curr_codes(rates_data) if currency_code is None else (currency_code,)
-        rates = (cls._get_actual_rates(cls._get_rates(rates_data, code)) for code in codes)
+    def get_rates(self, currency_code: Union[str, None] = None) -> tuple:
+        rates_data = self._get_currency_rates()
+        codes = self._get_curr_codes(rates_data) if currency_code is None else (currency_code,)
+        rates = (self._get_actual_rates(self._get_rates(rates_data, code)) for code in codes)
         return tuple(rates)
 
 

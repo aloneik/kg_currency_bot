@@ -9,3 +9,6 @@ venv
 
 # Visual Studio Code
 .vscode
+
+# Logs
+*.log

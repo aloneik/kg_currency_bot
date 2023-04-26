@@ -1,5 +1,7 @@
 import telebot
 import os
+import logging
+import datetime
 
 from collections import namedtuple
 from typing import List
@@ -25,7 +27,7 @@ bot = telebot.TeleBot(TOKEN)
 def send_message(message):
     chat_id = message.chat.id
 
-    rates = get_rates_providers()
+    rates = get_rates_data()
     response_text = build_response_text(rates)
 
     image_builder = ResponseImageBuilder()
@@ -33,11 +35,11 @@ def send_message(message):
 
     bot.send_photo(chat_id=chat_id, photo=response_image)
 
-def get_rates_providers(currency: str="RUB") -> List[BankRates]:
+def get_rates_data(currency: str="RUB") -> List[BankRates]:
     rates = []
     for provider in ProviderContainer.providers:
         try:
-            rates.append(BankRates(provider.NAME, get_rates(provider, currency)))
+            rates.append(BankRates(provider.NAME, get_rates(provider(), currency)))
         except Exception as ex:
             print(ex)
 
@@ -61,5 +63,12 @@ def build_response_text(rates: List[BankRates]) -> str:
 def get_rates(provider: CurrencyRatesProvider, currency_code: str) -> CurrencyRate:
     return provider.get_rates(currency_code)[0]
 
-# Start the bot
-bot.polling(none_stop=True)
+def init_logging():
+    time = datetime.datetime.now()
+    time_str = time.strftime(r"%d_%m_%Y_%H_%M_%S")
+    format = "%(asctime)s | %(levelname)s | %(module)s | %(message)s"
+    logging.basicConfig(level=logging.INFO, filename=f"currency_bot_{time_str}.log", encoding="cp1251", format=format)
+
+if __name__ == "__main__":
+    init_logging()
+    bot.polling(none_stop=True)
